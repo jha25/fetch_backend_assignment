@@ -2,14 +2,15 @@
 
 const express = require("express")
 const router = express.Router()
+
+// Logic route from controller
 const {
 	payerBalance,
 	setTransaction,
 	spendPoints,
-	updateBalance,
 } = require("../controllers/pointsController")
 
-router.route("/").get(payerBalance).post(setTransaction)
-router.route("/:id").delete(spendPoints).put(updateBalance)
+// GET/POST/PUT route imported from controller
+router.route("/").get(payerBalance).post(setTransaction).put(spendPoints)
 
 module.exports = router
