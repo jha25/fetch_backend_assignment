@@ -6,6 +6,7 @@ const {
 	validatePoints,
 	validateTimestamp,
 	errorHandler,
+	httpResponse,
 } = require("../utils/index")
 
 // Array to store objects created, I am accustomed to using
@@ -28,7 +29,7 @@ let spendResult = []
 const payerBalance = asyncHandler(async (req, res) => {
 	// Validate that array has at least 1 object stored
 	if (pointTransactions.length < 1 || payerSummaryBalance.length < 1) {
-		errorHandler("There is no transaction available")
+		httpResponse(res, 422, "Unable to get balance", "No transaction available")
 	}
 
 	// Return payer summary balance list
@@ -41,7 +42,12 @@ const payerBalance = asyncHandler(async (req, res) => {
 const setTransaction = asyncHandler(async (req, res) => {
 	// Validate fields are no empty
 	if (!req || !req.body) {
-		errorHandler("Input field not filled")
+		httpResponse(
+			res,
+			422,
+			"Unable to set transaction",
+			"No input fields filled",
+		)
 	}
 
 	const { payer, points, timestamp } = req.body
@@ -51,20 +57,35 @@ const setTransaction = asyncHandler(async (req, res) => {
 	// payer is a string, point is a number, timestamp is date
 	// input field can only be length 3
 
-	if (Object.keys(req.body).length !== 3) {
-		errorHandler("Please fill out only payer, points, and timestamp field")
-	}
-
 	if (!validatePayer(payer, "string")) {
-		errorHandler("Please input payer name")
+		httpResponse(
+			res,
+			422,
+			"Unable to set transaction",
+			"Please input payer name",
+		)
 	}
 
 	if (!validatePoints(pointsAmt, "integer")) {
-		errorHandler("Please input points amount")
+		httpResponse(
+			res,
+			422,
+			"Unable to set transaction",
+			"Please input points amount",
+		)
 	}
 
 	if (!validateTimestamp(timestamp)) {
-		errorHandler("Please input date")
+		httpResponse(res, 422, "Unable to set transaction", "Please input date")
+	}
+
+	if (Object.keys(req.body).length !== 3) {
+		httpResponse(
+			res,
+			422,
+			"Unable to set transaction",
+			"Please fill out only payer, points, and timestamp field",
+		)
 	}
 
 	// store payer, points and timestamp into object
@@ -93,19 +114,38 @@ const setTransaction = asyncHandler(async (req, res) => {
 const spendPoints = asyncHandler(async (req, res) => {
 	const { points } = req.body
 	if (!req.body) {
-		errorHandler("Please fill out points field")
+		httpResponse(res, 422, "Unable to spend points", "Field was not filled")
 	}
 
 	const pointsToSpend = parseInt(points)
 
 	// Validate points exist and is a number
 
-	if (
-		!validatePoints(pointsToSpend, "integer") ||
-		Object.keys(req.body).length > 1 ||
-		pointsToSpend <= 0
-	) {
-		errorHandler("Please input points amount to be spent")
+	if (!validatePoints(pointsToSpend, "integer")) {
+		httpResponse(
+			res,
+			422,
+			"Unable to spend points",
+			"Please input points amount to be spent",
+		)
+	}
+
+	if (pointsToSpend <= 0) {
+		httpResponse(
+			res,
+			422,
+			"Unable to spend points",
+			"Please input only positive value greater than 0",
+		)
+	}
+
+	if (Object.keys(req.body).length > 1) {
+		httpResponse(
+			res,
+			422,
+			"Unable to spend points",
+			"Please input only points field",
+		)
 	}
 
 	// total sum in the transaction array
@@ -115,7 +155,12 @@ const spendPoints = asyncHandler(async (req, res) => {
 
 	// Validate that there is sufficient points in transaction array
 	if (totalSum < pointsToSpend) {
-		errorHandler("Insufficient points available.")
+		httpResponse(
+			res,
+			422,
+			"Unable to spend points",
+			"Insufficient points available",
+		)
 	}
 
 	// Sort transaction by ascending dates

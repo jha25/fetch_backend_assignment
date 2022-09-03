@@ -1,4 +1,5 @@
 /** @format */
+const e = require("express")
 
 // Validate payer is a string and only contains letters
 const validatePayer = (input, type) => {
@@ -52,9 +53,15 @@ const errorHandler = (message) => {
 	throw error
 }
 
+// Reusable HTTP response
+const httpResponse = (res, statusCode, err, message) => {
+	return res.status(statusCode).json({ err, message })
+}
+
 module.exports = {
 	validatePayer,
 	validatePoints,
 	validateTimestamp,
 	errorHandler,
+	httpResponse,
 }
