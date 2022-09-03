@@ -1,4 +1,5 @@
 /** @format */
+const e = require("express")
 const asyncHandler = require("express-async-handler")
 const {
 	validatePayer,
@@ -83,7 +84,7 @@ const setTransaction = asyncHandler(async (req, res) => {
 		: parseInt(transaction.points)
 
 	// Return message that transaction completed
-	res.status(200).json({ message: "Transaction completed" })
+	res.status(200).json({ message: "Transaction completed", pointTransactions })
 })
 
 // @des Spend points
@@ -140,12 +141,19 @@ const spendPoints = asyncHandler(async (req, res) => {
 	let startingIndex = 0
 
 	// iterate through transaction array if points spend is not 0 or less.
+
 	while (remainingPoints > 0) {
 		const transaction = omittedTimestampArr[startingIndex]
-		// if transaction point meets points spend
-		if (transaction.points >= remainingPoints) {
-			// update transaction map and payer summary balance map
-			// set pointToSpend to 0 to end loop
+
+		if (transaction.points === remainingPoints) {
+			totalSum -= remainingPoints
+			transactionMap[transaction.payer] = transactionMap[transaction.payer]
+				? (transactionMap[transaction.payer] -= remainingPoints)
+				: remainingPoints * -1
+			payerSummaryBalance[transaction.payer] =
+				transaction.points - remainingPoints
+			remainingPoints = 0
+		} else if (transaction.points > remainingPoints) {
 			totalSum -= remainingPoints
 			transactionMap[transaction.payer] = transactionMap[transaction.payer]
 				? (transactionMap[transaction.payer] -= remainingPoints)
@@ -154,8 +162,6 @@ const spendPoints = asyncHandler(async (req, res) => {
 				transaction.points - remainingPoints
 			remainingPoints = 0
 		} else {
-			// Does not meet spend so update values in transaction map
-			// as well as payer summary balance until it does.
 			remainingPoints -= transaction.points
 			totalSum -= transaction.points
 			transactionMap[transaction.payer] = transactionMap[transaction.payer]
@@ -166,6 +172,7 @@ const spendPoints = asyncHandler(async (req, res) => {
 		}
 	}
 
+	// Push object into spendResult array to meet format
 	for (const [key, value] of Object.entries(transactionMap)) {
 		spendResult.push({ payer: key, points: value })
 	}

@@ -4,6 +4,7 @@ const chai = require("chai")
 const chaiHttp = require("chai-http")
 const { expect, request, should } = chai
 chai.use(chaiHttp)
+// Helper function
 const { parseResponse } = require("./util")
 
 const API = `http://localhost:8000`
@@ -116,6 +117,7 @@ describe("Main Test - valid inputs", () => {
 				const { statusCode, body } = parseResponse(res)
 				const expectedResult = {
 					DANNON: 500,
+					UNILEVER: 200,
 				}
 				expect(statusCode).to.equal(200)
 				expect(body).to.deep.equal(expectedResult)
