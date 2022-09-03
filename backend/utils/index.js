@@ -55,7 +55,7 @@ const errorHandler = (message) => {
 
 // Reusable HTTP response
 const httpResponse = (res, statusCode, err, message) => {
-	return res.status(statusCode).json({ err, message })
+	return res.status(statusCode).json({ statusCode, err, message })
 }
 
 module.exports = {
